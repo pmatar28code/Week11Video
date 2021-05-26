@@ -45,8 +45,10 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         AsyncTask.execute {
             val items = dataBase?.dreamListDao()?.getAll()
-            itemsAdapter.submitList(items)
-        }
+            runOnUiThread {
+                itemsAdapter.submitList(items)
+                }
+            }
     }
 
     private fun setUpAdapter(recyclerView: RecyclerView){

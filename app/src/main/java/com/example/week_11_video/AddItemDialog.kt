@@ -71,12 +71,25 @@ class AddItemDialog:DialogFragment() {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
         if(resultCode == RESULT_OK && requestCode == PICK_IMAGE){
-            imageUri = data?.data ?:"".toUri()
-            val addImage = dialog?.findViewById<ImageView>(R.id.add_image)
-            addImage?.setImageURI(imageUri)
+            intent?.run{
+                imageUri = data ?: "".toUri()
+
+                // this is the special bit, here you're grabbing any flags that were previously
+                // attached to the intent, then you're using a bitwise `and` and a bitwise `or`
+                // (these are low level linux operations in regards to permissions) to get the
+                // permissions to hold on to access to the URI forever
+                val takeFlags = flags and (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+
+                // now you need to let Android know you want these permissions forever
+                requireActivity().contentResolver.takePersistableUriPermission(imageUri, takeFlags)
+
+                val addImage = dialog?.findViewById<ImageView>(R.id.add_image)
+                addImage?.setImageURI(imageUri)
+            }
+
 
         }
     }
